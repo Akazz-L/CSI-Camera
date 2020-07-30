@@ -31,6 +31,8 @@ class Interface(Enum):
     USB = 1
     MIPI = 2 # CSI
 
+
+
 # TODO CSI_Camera class to Camera class
 #      adapt with interface attribute : self.interface = Interface.USB or Interface.MIPI
 class CSI_Camera:
@@ -178,14 +180,23 @@ def gstreamer_pipeline(
         )
     )
 
+# Decode interface 
+def decode(interface):
+    if interface == "usb":
+        return Interface.USB
+    elif interface == "mipi":
+        return Interface.MIPI
+    else:
+        print("Invalid interface. Only USB and MIPI interfaces are currently available")
+        return
 
 def start_cameras(interface, capture_width, capture_height):
     left_camera = CSI_Camera()
-    left_camera.open(interface,0, capture_width, capture_height)
+    left_camera.open(decode(interface),0, capture_width, capture_height)
     left_camera.start()
 
     right_camera = CSI_Camera()
-    right_camera.open(interface,1,capture_width, capture_height)
+    right_camera.open(decode(interface),1,capture_width, capture_height)
     right_camera.start()
 
     cv2.namedWindow("CSI Cameras", cv2.WINDOW_AUTOSIZE)
@@ -220,6 +231,9 @@ def start_cameras(interface, capture_width, capture_height):
     cv2.destroyAllWindows()
 
 
+
+
+
 def readArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('--interface', type=str, default='usb', help='Cameras interface support (usb|mipi)')
@@ -228,7 +242,8 @@ def readArgs():
     args = parser.parse_args()
     return args
 
-    
+
+
 if __name__ == "__main__":
     args = readArgs()
     start_cameras(args.interface, args.capture_width, args.capture_height)
