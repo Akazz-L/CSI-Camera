@@ -16,6 +16,8 @@
 import cv2
 import threading
 import numpy as np
+import argparse
+from enum import Enum
 
 # gstreamer_pipeline returns a GStreamer pipeline for capturing from the CSI camera
 # Flip the image by setting the flip_method (most common values: 0 and 2)
@@ -24,7 +26,13 @@ import numpy as np
 left_camera = None
 right_camera = None
 
+# Interface Enum class
+class Interface(Enum):
+    USB = 1
+    MIPI = 2 # CSI
 
+# TODO CSI_Camera class to Camera class
+#      adapt with interface attribute : self.interface = Interface.USB or Interface.MIPI
 class CSI_Camera:
 
     def __init__ (self) :
@@ -39,20 +47,57 @@ class CSI_Camera:
         self.read_lock = threading.Lock()
         self.running = False
 
+    # USB Video Capture
+    def open(self, interface,sensor_id, capture_width, capture_height):
+        if interface == Interface.USB:
+            try:
+                self.video_capture = cv2.VideoCapture(sensor_id)
+                #https://docs.opencv.org/3.4/d4/d15/group__videoio__flags__base.html#gaeb8dd9c89c10a5c63c139bf7c4f5704d
+                if (capture_width is not None and capture_height is not None):
+                    self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, int(capture_width)) # Set width of the frame in the video frame
+                    self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, int(capture_height))
+                    print("Capture width and height set to : {}x{}".format(capture_width,capture_height))
 
-    def open(self, gstreamer_pipeline_string):
-        try:
-            self.video_capture = cv2.VideoCapture(
-                gstreamer_pipeline_string, cv2.CAP_GSTREAMER
-            )
+            except RuntimeError:
+                self.video_capture = None
+                print("Unable to open camera")
+                print("Pipeline: " + sensor_id)
+                return
             
-        except RuntimeError:
-            self.video_capture = None
-            print("Unable to open camera")
-            print("Pipeline: " + gstreamer_pipeline_string)
+            
+        elif interface == Interface.MIPI:
+            try:
+                gstreamer_pipeline_string = gstreamer_pipeline(
+                                                        sensor_id=sensor_id,
+                                                        sensor_mode=3,
+                                                        flip_method=0,
+                                                        display_height=540,
+                                                        display_width=960,
+                                                            )
+                self.video_capture = cv2.VideoCapture(
+                    gstreamer_pipeline_string, cv2.CAP_GSTREAMER
+                )
+            
+            except RuntimeError:
+                self.video_capture = None
+                print("Unable to open camera")
+                print("Pipeline: " + gstreamer_pipeline_string)
+                return
+
+        else:
+            print("Invalid interface. Only USB and MIPI interfaces are currently available")
             return
+
+        # Display video capture info
+        self.capture_info()
         # Grab the first frame to start the video capturing
         self.grabbed, self.frame = self.video_capture.read()
+
+    def capture_info(self):
+        print("Capture width and height : {}x{}".format(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH),
+                                                        video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        print("Capture FPS : {}".format(video_capture.get(cv2.CAP_PROP_FPS)))
+
 
     def start(self):
         if self.running:
@@ -132,29 +177,13 @@ def gstreamer_pipeline(
     )
 
 
-def start_cameras():
+def start_cameras(interface, capture_width, capture_height):
     left_camera = CSI_Camera()
-    left_camera.open(
-        gstreamer_pipeline(
-            sensor_id=0,
-            sensor_mode=3,
-            flip_method=0,
-            display_height=540,
-            display_width=960,
-        )
-    )
+    left_camera.open(interface,0, capture_width, capture_height)
     left_camera.start()
 
     right_camera = CSI_Camera()
-    right_camera.open(
-        gstreamer_pipeline(
-            sensor_id=1,
-            sensor_mode=3,
-            flip_method=0,
-            display_height=540,
-            display_width=960,
-        )
-    )
+    right_camera.open(interface,1,capture_width, capture_height)
     right_camera.start()
 
     cv2.namedWindow("CSI Cameras", cv2.WINDOW_AUTOSIZE)
@@ -189,5 +218,15 @@ def start_cameras():
     cv2.destroyAllWindows()
 
 
+def readArgs():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--interface', type=str, default='usb', help='Cameras interface support (usb|mipi)')
+    parser.add_argument('--capture_width', type=int, help='Cameras capture width')
+    parser.add_argument('--capture_height', type=int, help='Cameras capture height')
+    args = parser.parse_args()
+    return args
+
+    
 if __name__ == "__main__":
-    start_cameras()
+    args = readArgs()
+    start_cameras(args.interface, args.capture_width, args.capture_height)
