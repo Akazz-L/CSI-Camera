@@ -44,6 +44,9 @@ def gstreamer_pipeline(
 def show_camera():
     # To flip the image, modify the flip_method parameter (0 and 2 are the most common)
     cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')) # Set the video decoder
     capture_info(cap)
 
     if cap.isOpened():

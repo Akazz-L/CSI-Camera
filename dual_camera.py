@@ -57,6 +57,8 @@ class CSI_Camera:
                     self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, int(capture_width)) # Set width of the frame in the video frame
                     self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, int(capture_height))
                     print("Capture width and height set to : {}x{}".format(capture_width,capture_height))
+                    self.video_capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+                    print("Video decoder set to : MJPG")
 
             except RuntimeError:
                 self.video_capture = None
