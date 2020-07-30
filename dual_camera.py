@@ -59,8 +59,10 @@ class CSI_Camera:
                     self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, int(capture_width)) # Set width of the frame in the video frame
                     self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, int(capture_height))
                     print("Capture width and height set to : {}x{}".format(capture_width,capture_height))
-                    self.video_capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-                    print("Video decoder set to : MJPG")
+               
+                # Video decoder (Speed performance)
+                self.video_capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+                print("Video decoder set to : MJPG")
 
             except RuntimeError:
                 self.video_capture = None
@@ -190,13 +192,13 @@ def decode(interface):
         print("Invalid interface. Only USB and MIPI interfaces are currently available")
         return
 
-def start_cameras(interface, capture_width, capture_height):
+def start_cameras(interface,device0,device1, capture_width, capture_height):
     left_camera = CSI_Camera()
-    left_camera.open(decode(interface),0, capture_width, capture_height)
+    left_camera.open(decode(interface),device0, capture_width, capture_height)
     left_camera.start()
 
     right_camera = CSI_Camera()
-    right_camera.open(decode(interface),1,capture_width, capture_height)
+    right_camera.open(decode(interface),device1,capture_width, capture_height)
     right_camera.start()
 
     cv2.namedWindow("CSI Cameras", cv2.WINDOW_AUTOSIZE)
@@ -237,6 +239,8 @@ def start_cameras(interface, capture_width, capture_height):
 def readArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('--interface', type=str, default='usb', help='Cameras interface support (usb|mipi)')
+    parser.add_argument('--device0', type=int, default=0, help='video device in /dev/video*')
+    parser.add_argument('--device1', type=int, default=1, help='video device in /dev/video*')
     parser.add_argument('--capture_width', type=int, help='Cameras capture width')
     parser.add_argument('--capture_height', type=int, help='Cameras capture height')
     args = parser.parse_args()
@@ -244,6 +248,7 @@ def readArgs():
 
 
 
+# ex usage : python3 dual_camera.py --capture_width 800 --capture_height 600 --device0 2 --device1 4
 if __name__ == "__main__":
     args = readArgs()
-    start_cameras(args.interface, args.capture_width, args.capture_height)
+    start_cameras(args.interface, args.device0, args.device1, args.capture_width, args.capture_height)
