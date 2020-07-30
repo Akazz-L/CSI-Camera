@@ -98,9 +98,9 @@ class CSI_Camera:
         self.grabbed, self.frame = self.video_capture.read()
 
     def capture_info(self):
-        print("Capture width and height : {}x{}".format(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH),
-                                                        video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-        print("Capture FPS : {}".format(video_capture.get(cv2.CAP_PROP_FPS)))
+        print("Capture width and height : {}x{}".format(self.video_capture.get(cv2.CAP_PROP_FRAME_WIDTH),
+                                                        self.video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        print("Capture FPS : {}".format(self.video_capture.get(cv2.CAP_PROP_FPS)))
 
 
     def start(self):
