@@ -53,13 +53,12 @@ class CSI_Camera:
     def open(self, interface,sensor_id, capture_width, capture_height):
         if interface == Interface.USB:
             try:
-                self.video_capture = cv2.VideoCapture(sensor_id)
+                self.video_capture = cv2.VideoCapture(sensor_id,cv2.CAP_V4L)
                 #https://docs.opencv.org/3.4/d4/d15/group__videoio__flags__base.html#gaeb8dd9c89c10a5c63c139bf7c4f5704d
                 if (capture_width is not None and capture_height is not None):
                     self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, int(capture_width)) # Set width of the frame in the video frame
                     self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, int(capture_height))
                     print("Capture width and height set to : {}x{}".format(capture_width,capture_height))
-               
                 # Video decoder (Speed performance)
                 self.video_capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
                 print("Video decoder set to : MJPG")

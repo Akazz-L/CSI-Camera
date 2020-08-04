@@ -43,8 +43,8 @@ def gstreamer_pipeline(
 
 def show_camera():
     # To flip the image, modify the flip_method parameter (0 and 2 are the most common)
-    cap = cv2.VideoCapture(0)
-    #cap = cv2.VideoCapture(0, cv2.CAP_V4L) # Correct GStreamer warning on NVIDIA Jetson NX
+    #cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0, cv2.CAP_V4L) # Correct GStreamer warning on NVIDIA Jetson NX
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')) # Set the video decoder
@@ -55,8 +55,11 @@ def show_camera():
         # Window
         while cv2.getWindowProperty("USB Camera", 0) >= 0:
             ret_val, img = cap.read()
-            cv2.imshow("USB Camera", img)
-            # This also acts as
+            if ret_val :
+
+                cv2.imshow("USB Camera", img)
+                # This also acts as
+            
             keyCode = cv2.waitKey(30) & 0xFF
             # Stop the program on the ESC key
             if keyCode == 27:
